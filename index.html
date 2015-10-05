@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <title>Ivan_</title>
+        <link rel="stylesheet" href="css/iceDrone.css">
+		<link rel="stylesheet" type="text/css" href="css/flightindicators.css">
+
+
+		<script src="js/jquery-2.1.4.min.js"></script>
+		<script src="js/jquery.flightindicators.js"></script>
+
+
+        <script type="text/javascript" src="droneSensors.js"></script>
+
+        <script type="text/javascript" src="js/zeroc-icejs-master/lib/Ice.js"></script>
+        <script type="text/javascript" src="js/zeroc-icejs-master/lib/Glacier2.js"></script>
+        <script type="text/javascript" src="js/zeroc-icejs-master/lib/IceStorm.js"></script>
+        <script type="text/javascript" src="js/jderobot/cmdvel.js"></script>
+        <script type="text/javascript" src="js/jderobot/ardroneextra.js"></script>
+        <script type="text/javascript" src="js/jderobot/navdata.js"></script>
+        <script type="text/javascript" src="js/jderobot/pose3d.js"></script>
+        <script type="text/javascript" src="introrobot_JS.js"></script>
+    </head>
+    <body>
+
+        <p>Pruebas de ws</p>
+
+				<label for=fader align=center> Fader </laber>
+				<input type=range min=-1 max=1 value=0 id=fader orient="vertical" class=vertical oninput="Fader(value)" step= 0.05 enabled>
+				<output for=fader id=val> 0 </output>
+
+
+
+
+        <canvas id="canvas" width="220" height="140" style="border: 1px solid black" >Your browser does not support the HTML5 canvas tag.</canvas>
+
+
+
+
+	    <button onclick = "takeoff()">Take Off</button>
+        
+        <button onclick = "land()">Landing</button>
+
+        <button onclick = "reset()">Reset</button>
+        
+        <button onclick = "updateNavData()">updateNavData()</button>
+        
+        <button onclick = "updatePose()">getPose3DData()</button>
+        
+        <button onclick = "Canvas()">canvas()</button>
+        <button onclick = "panel()">panel</button>
+
+        
+        <button onclick = "startTimeOuts()">TIMEOUTS()</button>
+
+
+    <span id="airspeed"></span>
+    <span id="attitude"></span>
+    <span id="altimeter"></span>
+    <span id="turn_coordinator"></span>
+    <span id="heading"></span>
+    <span id="variometer"></span>
+	
+    </body>
+</html>
