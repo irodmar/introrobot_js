@@ -20,16 +20,15 @@
         <script type="text/javascript" src="js/jderobot/ardroneextra.js"></script>
         <script type="text/javascript" src="js/jderobot/navdata.js"></script>
         <script type="text/javascript" src="js/jderobot/pose3d.js"></script>
-        <script type="text/javascript" src="introrobot_JS.js"></script>
+        <script type="text/javascript" src="introtobot_JS.js"></script>
     </head>
     <body>
 
         <p>Pruebas de ws</p>
 
-				<label for=fader align=center> Fader </laber>
-				<input type=range min=-1 max=1 value=0 id=fader orient="vertical" class=vertical oninput="Fader(value)" step= 0.05 enabled>
-				<output for=fader id=val> 0 </output>
-
+		<label for=fader align=center> Fader </laber>
+		<input id = altura type=range min=-1 max=1 value=0 id=fader orient="vertical" class=vertical step= 0.05 enabled>
+		<output for=fader id=val> 0 </output>
 
 
 
@@ -38,9 +37,9 @@
 
 
 
-	    <button onclick = "takeoff()">Take Off</button>
+	    <button id = takeoff >Take Off</button>
         
-        <button onclick = "land()">Landing</button>
+        <button id = landing>Landing</button>
 
         <button onclick = "reset()">Reset</button>
         
@@ -61,6 +60,34 @@
     <span id="turn_coordinator"></span>
     <span id="heading"></span>
     <span id="variometer"></span>
+	
+	
+	<script>
+			var introrobot = new introrobot_js ("localhost", 17000, 15000, 11000, 19000);
+			introrobot.start();
+			window.introrobot =introrobot;
+			var prepareButton = function () {
+				document.getElementById('takeoff').onclick = function() {
+					introrobot.takeoff();
+				}
+				document.getElementById('landing').onclick = function() {
+					introrobot.land();
+				}
+				document.getElementById('altura').oninput = function() {
+					introrobot.Fader();
+				}
+			};
+	
+			window.onload = prepareButton;
+		
+		
+		
+		//window.onload = function(){
+		//	introrobot.start();
+		//	document.getElementById("takeoff").onclick(introrobot.takeoff());
+		//}
+	</script>
+	
 	
     </body>
 </html>

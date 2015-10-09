@@ -1,4 +1,4 @@
-function panel(){
+var panelControl = function (){
     
     // Dynamic examples
     var attitude = $.flightIndicator('#attitude', 'attitude', {roll:50, pitch:-20, size:200, showBox : true}); // Horizon
@@ -7,20 +7,18 @@ function panel(){
     //var airspeed = $.flightIndicator('#airspeed', 'airspeed', {showBox: false}); // air speed
     var altimeter = $.flightIndicator('#altimeter', 'altimeter');
     var turn_coordinator = $.flightIndicator('#turn_coordinator', 'turn_coordinator', {turn:0}); // alas avion
-    
-    // Update at 20Hz
-    setInterval(function() {
+  
+
+
+    this.updatePanelControl =  function(yaw, pitch, roll, pose){
         // Airspeed update
-        updatePose();
-        var yaw = quatToYaw(pose.q0, pose.q1, pose.q2, pose.q3);
-        var pitch = quatToPitch(pose.q0, pose.q1, pose.q2, pose.q3);
-        var roll = quatToRoll(pose.q0, pose.q1, pose.q2, pose.q3);
+
 
         //airspeed.setAirSpeed(80+80*Math.sin(increment/10));
     
         // Attitude update
-        attitude.setRoll(roll);
-        attitude.setPitch(pitch);
+        attitude.setRoll(-roll);
+        attitude.setPitch(-pitch);
 
         // Altimeter update
         altimeter.setAltitude(pose.z*100);
@@ -36,4 +34,5 @@ function panel(){
         //variometer.setVario(2*Math.sin(increment/10));
 
     
-}, 50);  }
+    }
+}
