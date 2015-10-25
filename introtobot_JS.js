@@ -278,15 +278,16 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         }
         
         this.stop = function(){
-                //poner en el centro el canvas
-                //Poner en el centro el fader
-                startCanvas();
-                document.getElementById('altura').value = 0;    
-                document.querySelector('#val').value = 0;
-                setVZ(0);
+                startCanvas(); // ReWrite the canvas
+                document.getElementById('altura').value = 0; // Set altitude to 0   
+                document.querySelector('#AltVal').value = 0; // set altitude indicator to 0
+                setVZ(0); // Altitude velocity to 0 and send to the drone
                 sendVelocities();
-                document.getElementById('knob').value = 0;
-                rotationChange(0);
+                rotationChange(0); //change e rotation to 0
+                document.getElementById('knob').value = 0; // Ratotaion value set to 0
+                $('.knob')  // set 0 canvas jquery button
+                        .val(0)
+                        .trigger('change');
                 console.log("Stop");
         }
         
@@ -356,7 +357,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                 sendVelocities();
         }
 
-        this.rotationChange  = function (newYaw){
+        function rotationChange (newYaw){
                 setYaw(newYaw);
                 sendVelocities();
         }
@@ -381,6 +382,66 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                 cmd.angularY=pitch;
         }
         
+        //****************************************************************************************************************
+        // Rotation button
+        //****************************************************************************************************************
+
+        
+        $(function($) {
+
+			$(".knob").knob({
+				change : function (value) {
+					rotationChange(value);
+					//console.log("change : " + value);
+				},
+				release : function (value) {
+					//console.log("release : " + value);
+				},
+				cancel : function () {
+					console.log("cancel : ", this);
+				},
+				draw : function () {
+                        console.log("Drawing****");
+					// "tron" case
+					if(this.$.data('skin') == 'tron') {
+
+						this.cursorExt = 0.3;
+
+						var a = this.arc(this.cv)  // Arc
+							, pa                   // Previous arc
+							, r = 1;
+
+						this.g.lineWidth = this.lineWidth;
+
+						if (this.o.displayPrevious) {
+							pa = this.arc(this.v);
+							this.g.beginPath();
+							this.g.strokeStyle = this.pColor;
+							this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, pa.s, pa.e, pa.d);
+							this.g.stroke();
+						}
+
+						this.g.beginPath();
+						this.g.strokeStyle = r ? this.o.fgColor : this.fgColor ;
+						this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, a.s, a.e, a.d);
+						this.g.stroke();
+
+						this.g.lineWidth = 2;
+						this.g.beginPath();
+						this.g.strokeStyle = this.o.fgColor;
+						this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 1 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
+						this.g.stroke();
+
+						return false;
+					}
+				}
+			});			
+		});
+        
+        
+        //****************************************************************************************************************
+        //****************************************************************************************************************
+
         
         this.altitude = function (value) {
             var val =  document.getElementById('altura').value;    
