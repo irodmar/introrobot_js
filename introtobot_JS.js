@@ -70,7 +70,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         function startConnection(){
                 return new Promise(function(resolve, reject) {
                         // base extra connection
-                        var baseextra = communicator.stringToProxy("Extra:ws -h 10.10.48.104 -p 17000");
+                        var baseextra = communicator.stringToProxy("Extra:ws -h " + ip + " -p " + baseextraPort);
                         jderobot.ArDroneExtraPrx.checkedCast(baseextra).then(
                             function(ar){
                                 extraProxy = ar;
@@ -83,7 +83,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                         
                         
                         // NavData
-                        var basenavdata = communicator.stringToProxy("Navdata:ws -h 10.10.48.104 -p 15000");
+                        var basenavdata = communicator.stringToProxy("Navdata:ws -h " + ip + " -p " + navdataProxyPort);
                         jderobot.NavdataPrx.checkedCast(basenavdata).then(
                             function(ar){
                                 console.log("navdataProxy connected: " + ar);
@@ -109,7 +109,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                         );        
                       
                         // CMDVelPrx
-                        var basecmdVel = communicator.stringToProxy("CMDVel:ws -h 10.10.48.104 -p 11000");
+                        var basecmdVel = communicator.stringToProxy("CMDVel:ws -h " + ip + " -p " + cmdVelProxyPort);
                         jderobot.CMDVelPrx.checkedCast(basecmdVel).then(
                             function(ar){
                                 console.log("cmdVelProxy connected: " + ar);
@@ -121,7 +121,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                         );             
                       
                         // Pose3D
-                       var basepose3D = communicator.stringToProxy("ImuPlugin:ws -h 10.10.48.104 -p 19000");
+                       var basepose3D = communicator.stringToProxy("ImuPlugin:ws -h " + ip + " -p " + pose3DProxyPort);
                        jderobot.Pose3DPrx.checkedCast(basepose3D).then(
                            function(ar){
                                console.log("pose3DProxy connected: " + ar);
@@ -151,17 +151,21 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
             canvas = document.getElementById("canvas");
             
             if (canvas.getContext) {
-              var context = canvas.getContext('2d');
-              // Size of the cnvas to draw circle in the middle the axis position
-              canvasX = context.canvas.width;
-              canvasY = context.canvas.height;
-              circleX = canvasX/2;
-              circleY = canvasY/2;
-              // Draw a circle in the center of the canvas
-              context.beginPath();
-              context.fillStyle = "rgb(255, 0, 0)";
-              context.arc(circleX, circleY, radious, 0, 2 * Math.PI, true);
-              context.fill();
+                var context = canvas.getContext('2d');
+                context.clearRect(0, 0, canvas.width, canvas.height); // Borramos por si acaso llamamos a la funcion al llamamos a la funcion con la funcion stop
+                // Size of the cnvas to draw circle in the middle the axis position
+                canvasX = context.canvas.width;
+                canvasY = context.canvas.height;
+                setVY(0); // Change variables and send the command to the drone
+                setVX(0);
+                sendVelocities();
+                circleX = canvasX/2;
+                circleY = canvasY/2;
+                // Draw a circle in the center of the canvas
+                context.beginPath();
+                context.fillStyle = "rgb(255, 0, 0)";
+                context.arc(circleX, circleY, radious, 0, 2 * Math.PI, true);
+                context.fill();
             }
             
             // Add event listener for `click` events.
@@ -198,31 +202,6 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
             };
             }
                        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         
         // Functions return the value of fliying parameters
@@ -262,8 +241,6 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         //*********************************************************************************************
         //*********************************************************************************************
         
-
-        
        
         
         // extraProxy functions  
@@ -300,20 +277,19 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
             );
         }
         
-        this.reset = function() {
-            extraProxy.reset().then(
-                function(ar){
-                    console.log("Reset.");
-                },
-                function(ex, ar){
-                    console.log("Reset failed: " + ex)
-                }
-            );
+        this.stop = function(){
+                //poner en el centro el canvas
+                //Poner en el centro el fader
+                startCanvas();
+                document.getElementById('altura').value = 0;    
+                document.querySelector('#val').value = 0;
+                setVZ(0);
+                sendVelocities();
+                document.getElementById('knob').value = 0;
+                rotationChange(0);
+                console.log("Stop");
         }
         
-        
-        
-
         
         
         function updateNavData() {
@@ -329,23 +305,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         }
         
         
-        
-
-        
-        this.velocities = function() {
-            window.cmdV=cmdVelProxy;
-            cmdVelProxy.setCMDVelData(cmd).then(
-            function(ar){
-                console.log("Velocities.");
-            },
-            function(ex, ar){
-                console.log("Velocities failed.")
-            }
-        );
-        }
-        
         function sendVelocities () {
-            window.cmdV=cmdVelProxy;
             cmdVelProxy.setCMDVelData(cmd).then(
             function(ar){
                 //console.log("sendVelocities.");
@@ -389,7 +349,17 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                         console.log("Fail setPose3DData function: " + ar);
                     });   
         }
-        
+
+        function setXYValues(newX,newY){
+                setVY(newY);
+                setVX(newX);
+                sendVelocities();
+        }
+
+        this.rotationChange  = function (newYaw){
+                setYaw(newYaw);
+                sendVelocities();
+        }
         
 
         function setVX(vx){
@@ -402,7 +372,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                 cmd.linearZ=vz;
         }
         function setYaw(yaw){
-                cmd.angularZ=yaw;        
+                cmd.angularZ=yaw;
         }
         function setRoll(roll){
                 cmd.angularX=roll; 
@@ -412,7 +382,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         }
         
         
-        this.Fader = function (value) {
+        this.altitude = function (value) {
             var val =  document.getElementById('altura').value;    
             document.querySelector('#val').value = val;
             setVZ(val);
@@ -433,10 +403,6 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                 );
                    
         }
-        
-
-        
-              
         
         
         function updateAndShow(){
