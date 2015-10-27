@@ -27,57 +27,28 @@
     <body>
 
 		<h1 style = center>introrobot_js</h1>
-		<label for=fader align=center> Fader </laber>
-		<input id = altura type=range min=-1 max=1 value=0 id=fader orient="vertical" class=vertical step= 0.05 enabled>
-		<output for=fader id=AltVal> 0 </output>
 
-
-
-        <canvas id="canvas" width="220" height="140" style="border: 1px solid black" >Your browser does not support the HTML5 canvas tag.</canvas>
-
-        <input id = knob class="knob" data-width="150" data-min="-1" data-max="1" data-angleOffset="-125" data-angleArc=250 data-step = 0.01 data-cursor=true data-fgColor="#222222" data-thickness=.2 value="0" >
-        
-	    <button id = takeoff >Take Off</button>
-        
+		<section id = introrobot_watches></section>
+		<section id = introrobot_control></section>
+       
+	    <button id = takeoff >Take Off</button>        
         <button id = landing>Landing</button>
-
         <button id = stop>Stop</button>
-        
-
-
-        
-
-
-    <span id="airspeed"></span>
-    <span id="attitude"></span>
-    <span id="altimeter"></span>
-    <span id="turn_coordinator"></span>
-    <span id="heading"></span>
-    <span id="variometer"></span>
+        	
 	
 	
 	<script>
 			var introrobot = new introrobot_js ("10.10.48.235", 17000, 15000, 11000, 19000);
 			introrobot.start();
-			window.introrobot =introrobot;
-			var prepareButton = function () {
-				document.getElementById('takeoff').onclick = function() {
-					introrobot.takeoff();
-				}
-				document.getElementById('landing').onclick = function() {
-					introrobot.land();
-				}
-				document.getElementById('altura').oninput = function() {
-					introrobot.altitude();
-				}
-				document.getElementById('stop').onclick = function() {
-					introrobot.stop();
-				}
-			};
-	
-			window.onload = prepareButton;
-		
-
+			document.getElementById('takeoff').onclick = function() {
+				introrobot.takeoff();
+			}
+			document.getElementById('landing').onclick = function() {
+				introrobot.land();
+			}
+			document.getElementById('stop').onclick = function() {
+				introrobot.stop();
+			}
 	</script>
 	
     </body>

@@ -3,10 +3,36 @@
 
 
 var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPort, pose3DProxyPort){
-        // start = conectar ice +  sus funciones
-        // canvas = pintar el canvas
-        // Control de instrumentos 
+        
+        
+        
+        //********************************************************************************************
+        // Add necesary HTML to the page
+        //********************************************************************************************
 
+        var myHTMLWatches =  "<span id=airspeed></span>";
+        myHTMLWatches = myHTMLWatches + "<span id=attitude></span>";
+        myHTMLWatches = myHTMLWatches + "<span id=altimeter></span>";
+        myHTMLWatches = myHTMLWatches + "<span id=turn_coordinator></span>";
+        myHTMLWatches = myHTMLWatches + "<span id=heading></span>";
+        myHTMLWatches = myHTMLWatches + "<span id=variometer></span>";
+        var myHTMLControl = "<canvas id=canvas width=220 height=140 style=\"border:1px solid black\">Your browser does not support the HTML5 canvas tag.</canvas>";
+        myHTMLControl = myHTMLControl + "<input id = knob class=knob data-width=85 data-min=-1 data-max=1 data-angleOffset=-125 data-angleArc=250 data-step = 0.01 data-cursor=true data-fgColor=#222222 data-thickness=.2 value=0>";
+        myHTMLControl = myHTMLControl + "<label for=fader align=center> Fader </laber>";
+        myHTMLControl = myHTMLControl + "<input id = altura type=range min=-1 max=1 value=0 id=fader orient=vertical class=vertical step= 0.05 enabled>";
+        myHTMLControl = myHTMLControl + "<output for=fader id=AltVal> 0 </output>";        
+
+                
+        document.getElementById("introrobot_watches").innerHTML= myHTMLWatches;
+        document.getElementById("introrobot_control").innerHTML= myHTMLControl;
+        
+        //********************************************************************************************
+        //********************************************************************************************
+        
+        // Event for the altitude fader
+        document.getElementById('altura').oninput = function() {
+                altitude();
+        }
         
         // Variables generales
         var ARDRONE1 = 0;
@@ -394,14 +420,7 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
 					rotationChange(value);
 					//console.log("change : " + value);
 				},
-				release : function (value) {
-					//console.log("release : " + value);
-				},
-				cancel : function () {
-					console.log("cancel : ", this);
-				},
 				draw : function () {
-                        console.log("Drawing****");
 					// "tron" case
 					if(this.$.data('skin') == 'tron') {
 
@@ -443,9 +462,9 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         //****************************************************************************************************************
 
         
-        this.altitude = function (value) {
+        function altitude() {
             var val =  document.getElementById('altura').value;    
-            document.querySelector('#val').value = val;
+            document.querySelector('#AltVal').value = val;
             setVZ(val);
             sendVelocities();
          }
