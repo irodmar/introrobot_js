@@ -2,7 +2,7 @@
 <html lang="es">
     <head>
         <meta charset="utf-8">
-        <title>introrobot_js</title>
+        <title>UAV_ViewerWebRTC_js</title>
         <link rel="stylesheet" href="css/iceDrone.css">
 		<link rel="stylesheet" type="text/css" href="css/flightindicators.css">
 
@@ -26,7 +26,7 @@
     </head>
     <body>
 
-		<h1 style = center>introrobot_js</h1>
+		<h1 style = center>UAV_ViewerWebRTC_js</h1>
 
 		<section id = introrobot_watches></section>
 		<section id = introrobot_control></section>
@@ -34,11 +34,12 @@
 	    <button id = takeoff >Take Off</button>        
         <button id = landing>Landing</button>
         <button id = stop>Stop</button>
-        	
-	
+
+		<canvas id="joystick" width="100" height="100">Su navegador no soporta canvas :( </canvas>
+		</div>
 	
 	<script>
-			var introrobot = new introrobot_js ("10.10.48.235", 17000, 15000, 11000, 19000);
+			var introrobot = new introrobot_js ("localhost", 17000, 15000, 11000, 19000);
 			introrobot.start();
 			document.getElementById('takeoff').onclick = function() {
 				introrobot.takeoff();
@@ -49,6 +50,171 @@
 			document.getElementById('stop').onclick = function() {
 				introrobot.stop();
 			}
+	</script>
+	
+	<script>
+		// Posicion del raton
+		function oMousePos(canvas, evt) {
+			// Detecta la funcion del raton en un canvas
+			var ClientRect = canvas.getBoundingClientRect();
+				return { //objeto
+					x: Math.round(evt.clientX - ClientRect.left),
+					y: Math.round(evt.clientY - ClientRect.top)
+				}
+		}
+
+		// Posicion si tocamos la pantalla
+		function getTouchPos(canvasDom, touchEvent) {
+		  var rect = canvasDom.getBoundingClientRect();
+		  return {
+			x: touchEvent.touches[0].clientX - rect.left,
+			y: touchEvent.touches[0].clientY - rect.top
+		  };
+		}
+				
+		function joystick(){
+		
+			var canvas = document.getElementById("joystick");
+			var ctx = canvas.getContext("2d");
+			// opacidad 
+			ctx.globalAlpha = 0.85;
+			var X = canvas.width/2; // Tamaño del canvas
+			var Y = canvas.height/2;
+			var RHoop = X*0.7; //Diametro de aro
+			var RCircle = RHoop*0.4; // Diametro del circulo
+
+			var arrastrar = false;
+			var delta = new Object();
+			
+			
+			var poligonosRy = [
+				{'X':X, 'Y':Y,'R':RHoop}, //Hoop
+				{'X':X, 'Y':Y,'R':RCircle}, // Circle
+				];			
+			
+			
+			function dibujarAro(X, Y, R){
+				ctx.beginPath();
+				ctx.arc(X ,Y ,R ,0 ,(Math.PI/180)*360, true);
+				ctx.fillStyle="rgba(255,255,0,0)";
+				ctx.fill();
+				ctx.lineWidth = 7;
+				ctx.strokeStyle = "rgb(87,125,25)";
+				ctx.stroke();
+			}
+			
+			
+			function dibujarCirculo(X, Y, R){
+				ctx.beginPath();
+				ctx.fillStyle = "rgb(255, 144, 76)";
+				ctx.arc(X, Y, R, 0, 2*Math.PI, true);
+				ctx.fill();
+			}
+			
+			// dibujamos los dos compoentes del joystick
+			dibujarAro(poligonosRy[0].X, poligonosRy[0].Y, poligonosRy[0].R);
+			dibujarCirculo(poligonosRy[1].X, poligonosRy[1].Y, poligonosRy[1].R);
+			
+			//******************************************************************************	
+			//******************************************************************************			
+			// EVENTOS DE PANTALLAS TACTILES
+			//******************************************************************************	
+			//******************************************************************************
+			
+			canvas.addEventListener("touchstart", function(evt) {
+				  var mousePos = getTouchPos(canvas, evt);
+			
+				  dibujarCirculo(poligonosRy[1].X, poligonosRy[1].Y, poligonosRy[1].R);
+				  if (ctx.isPointInPath(mousePos.x, mousePos.y)) {
+					arrastrar = true;
+					delta.x = X - mousePos.x;
+					delta.y = Y - mousePos.y;
+				  }
+				}, false);
+			
+			canvas.addEventListener("touchmove", function(evt) {
+				  var mousePos = getTouchPos(canvas, evt);
+			
+				  if (arrastrar) {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					poligonosRy[1].X = mousePos.x + delta.x, poligonosRy[1].Y = mousePos.y + delta.y
+
+					dibujarAro(poligonosRy[0].X, poligonosRy[0].Y, poligonosRy[0].R);
+					dibujarCirculo(poligonosRy[1].X, poligonosRy[1].Y, poligonosRy[1].R);
+				  }
+				}, false);
+			
+				canvas.addEventListener("touchend", function(evt) {
+					arrastrar = false;
+					poligonosRy[1].X = poligonosRy[0].X;
+					poligonosRy[1].Y= poligonosRy[0].Y;
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					dibujarAro(poligonosRy[0].X, poligonosRy[0].Y, poligonosRy[0].R);
+					dibujarCirculo(poligonosRy[1].X, poligonosRy[1].Y, poligonosRy[1].R);
+				}, false);
+				
+
+				// Prevent scrolling when touching the canvas
+				document.body.addEventListener("touchstart", function (e) {
+				  if (e.target == canvas) {
+					e.preventDefault();
+				  }
+				}, false);
+				document.body.addEventListener("touchend", function (e) {
+				  if (e.target == canvas) {
+					e.preventDefault();
+				  }
+				}, false);
+				document.body.addEventListener("touchmove", function (e) {
+				  if (e.target == canvas) {
+					e.preventDefault();
+				  }
+				}, false);
+				
+			//******************************************************************************	
+			//******************************************************************************			
+			// EVENTOS DE RATON
+			//******************************************************************************	
+			//******************************************************************************	
+
+			canvas.addEventListener("mousedown", function(evt) {
+				  var mousePos = oMousePos(canvas, evt);
+			
+				  dibujarCirculo(poligonosRy[1].X, poligonosRy[1].Y, poligonosRy[1].R);
+				  if (ctx.isPointInPath(mousePos.x, mousePos.y)) {
+					arrastrar = true;
+					delta.x = X - mousePos.x;
+					delta.y = Y - mousePos.y;
+				  }
+				}, false);
+			
+			canvas.addEventListener("mousemove", function(evt) {
+				var mousePos = oMousePos(canvas, evt);
+					
+				if (arrastrar) { // PAra dibujar el movimiento					
+					console.log("VX: " + (mousePos.x + delta.x) + " VY: " + (mousePos.y - canvas.height/2)*(-1));
+
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					poligonosRy[1].X = mousePos.x + delta.x, poligonosRy[1].Y = mousePos.y + delta.y
+
+					dibujarAro(poligonosRy[0].X, poligonosRy[0].Y, poligonosRy[0].R);
+					dibujarCirculo(poligonosRy[1].X, poligonosRy[1].Y, poligonosRy[1].R);
+				  }
+				}, false);
+			
+				canvas.addEventListener("mouseup", function(evt) {
+					arrastrar = false;
+					poligonosRy[1].X = poligonosRy[0].X;
+					poligonosRy[1].Y= poligonosRy[0].Y;
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					dibujarAro(poligonosRy[0].X, poligonosRy[0].Y, poligonosRy[0].R);
+					dibujarCirculo(poligonosRy[1].X, poligonosRy[1].Y, poligonosRy[1].R);
+				}, false);	
+				
+		}
+		
+		joystick();
+	
 	</script>
 	
     </body>
