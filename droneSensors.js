@@ -13,7 +13,7 @@ var panelControl = function (){
     this.updatePanelControl =  function(yaw, pitch, roll, pose){
     
         // Attitude update
-        attitude.setRoll(-roll);
+        attitude.setRoll(roll);
         attitude.setPitch(-pitch);
 
         // Altimeter update
@@ -21,7 +21,7 @@ var panelControl = function (){
         //altimeter.setPressure(1000+3*Math.sin(increment/50));
     
         // TC update
-        turn_coordinator.setTurn(-roll);
+        turn_coordinator.setTurn(roll);
     
         // Heading update
         heading.setHeading(yaw);

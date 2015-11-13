@@ -16,11 +16,8 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         myHTMLWatches = myHTMLWatches + "<span id=turn_coordinator></span>";
         myHTMLWatches = myHTMLWatches + "<span id=heading></span>";
         myHTMLWatches = myHTMLWatches + "<span id=variometer></span>";
-        var myHTMLControl = "<canvas id=canvas width=220 height=140 style=\"border:1px solid black\">Your browser does not support the HTML5 canvas tag.</canvas>";
-        myHTMLControl = myHTMLControl + "<input id = knob class=knob data-width=85 data-min=-1 data-max=1 data-angleOffset=-125 data-angleArc=250 data-step = 0.01 data-cursor=true data-fgColor=#222222 data-thickness=.2 value=0>";
-        myHTMLControl = myHTMLControl + "<label for=fader align=center> Fader </laber>";
-        myHTMLControl = myHTMLControl + "<input id = altura type=range min=-1 max=1 value=0 id=fader orient=vertical class=vertical step= 0.05 enabled>";
-        myHTMLControl = myHTMLControl + "<output for=fader id=AltVal> 0 </output>";        
+        var myHTMLControl = "<canvas id='leftJoystick' width=150 height=150>Su navegador no soporta canvas :( </canvas>";
+        myHTMLControl = myHTMLControl + "<canvas id=rightJoystick width=150 height=150>Su navegador no soporta canvas :( </canvas>";       
 
                 
         document.getElementById("introrobot_watches").innerHTML= myHTMLWatches;
@@ -29,10 +26,6 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         //********************************************************************************************
         //********************************************************************************************
         
-        // Event for the altitude fader
-        document.getElementById('altura').oninput = function() {
-                altitude();
-        }
         
         // Variables generales
         var ARDRONE1 = 0;
@@ -63,27 +56,13 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         cmd.linearY=0.0;
         cmd.linearZ=0.0;
         cmd.angularZ=0.0;
-        cmd.angularX=0.5;
-        cmd.angularY=1.0;
+        cmd.angularX=0.0;
+        cmd.angularY=0.0;
         window.cmd = cmd;
         
         var pose = new jderobot.Pose3DData; //pose3DData
         
-        //*********************************************************************************************
-        //*********************************************************************************************
-        // Variables del canvas del manejo del vuelo
-        var canvas;
-        // Dimensions of the canvas
-        var canvasX;
-        var canvasY;
-        // var defines send data or not
-        var mouseIsDown = false;
-        var moveCircle = false;
-        // radious of the circle
-        var radious = 7;
-        //pos the center of the circle
-        var circleX;
-        var circleY;
+
         
         
         // Varibale del panel de control de los intrumentos
@@ -169,66 +148,420 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                        );
                     });
                 }
-        
-        
-        // Canvas        
-        function startCanvas(){
+
+
+        function rightJoystick(){
+
+                var canvas = document.getElementById("rightJoystick");
+                var ctx = canvas.getContext("2d");
+                // opacidad 
+                ctx.globalAlpha = 0.85;
+                var cw = canvas.width;
+                var ch = canvas.height;
+                var X = cw / 2;
+                var Y = ch / 2;
+                var lineWidth = 7;
+                ctx.lineWidth = lineWidth;
+                var RHoop = X * 0.7; //Diametro de aro
+                var RCircle = RHoop * 0.4; // Diametro del circulo
+                var maxR = RHoop; // Distancia maxima a la que puede moverse
                 
-            canvas = document.getElementById("canvas");
-            
-            if (canvas.getContext) {
-                var context = canvas.getContext('2d');
-                context.clearRect(0, 0, canvas.width, canvas.height); // Borramos por si acaso llamamos a la funcion al llamamos a la funcion con la funcion stop
-                // Size of the cnvas to draw circle in the middle the axis position
-                canvasX = context.canvas.width;
-                canvasY = context.canvas.height;
-                setVY(0); // Change variables and send the command to the drone
-                setVX(0);
-                sendVelocities();
-                circleX = canvasX/2;
-                circleY = canvasY/2;
-                // Draw a circle in the center of the canvas
-                context.beginPath();
-                context.fillStyle = "rgb(255, 0, 0)";
-                context.arc(circleX, circleY, radious, 0, 2 * Math.PI, true);
-                context.fill();
-            }
-            
-            // Add event listener for `click` events.
-            canvas.onmousedown = function(e) {
-                mouseIsDown = true;
-                var x = e.pageX - this.offsetLeft;
-                var y = e.pageY - this.offsetTop;
-                if ((circleX - (radious/2)) < x && x < (circleX + (radious/2)) && (circleY - (radious/2)) < y && y < (circleY + (radious/2))) {
-                    moveCircle = true;
+                var arrastrar = false;
+                
+                var p = {
+                  'X': X,
+                  'Y': Y,
+                  'R': RCircle
+                }; // Circle
+                var delta = new Object();
+                
+                var normalizaX = (X + maxR) - (X - maxR); 
+                var normalizaY = (Y + maxR) - (Y - maxR);
+                var VX = 0;
+                var VY = 0;
+
+                function dibujarAro(x, y, r) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, r, 0, 2 * Math.PI, true);
+                        //ctx.lineWidth = 7;
+                        ctx.strokeStyle = "rgb(87,125,25)";
+                        ctx.stroke();
                 }
-            }
-            // When release the click stop sending data
-            canvas.onmouseup = function(e){
-                mouseIsDown = false;
-                moveCircle = false;
-            }
+
+                function dibujarCirculo(x, y, r) {
+                        ctx.beginPath();
+                        ctx.fillStyle = "rgb(75, 144, 176)";
+                        ctx.arc(x, y, r, 0, 2 * Math.PI, true);
+                        ctx.fill();
+                }
+
+                // dibujamos los dos compoentes del joystick
+                dibujarAro(X, Y, RHoop);
+                dibujarCirculo(p.X, p.Y, RCircle);
+                
+                // EVENTOS 
+                canvas.addEventListener('mousedown', function(evt) {
+                        var mousePos = oMousePos(canvas, evt);
+
+                        if (ctx.isPointInPath(mousePos.x, mousePos.y)) {
+                                arrastrar = true;
+                       }
+                }, false);
+
+                // mousemove 
+                canvas.addEventListener('mousemove', function(evt) {
+                        var m = oMousePos(canvas, evt);
+                        //ctx.beginPath();
+                        //ctx.arc(X, Y, maxR, 0, 2 * Math.PI);
+                        if (arrastrar) {
+                                delta.x = m.x - p.X;
+                                delta.y = m.y - p.Y;
+                                var deltaR = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+                                var elR = Math.min(deltaR, maxR);
+                                //console.log("DeltaR: " + deltaR + " elR: " + elR);
+                                var angulo = Math.atan2(delta.y, delta.x);
+                                //console.log(angulo); //
+                                
+                                x = X + elR * Math.cos(angulo);
+                                y = Y + elR * Math.sin(angulo);
+                                
+                                rotationChange(((x - X)/maxR)); //Giro del drone
+                                altitude(((y - Y)/maxR)*(-1)); //Altitud del drone
+                                                                
+                                ctx.clearRect(0, 0, cw, ch); // Clear and redraw the joystick
+                                dibujarAro(X, Y, RHoop);
+                                dibujarCirculo(x, y, RCircle);
+                        }
+                }, false);
+                
+                // mouseup 
+                canvas.addEventListener('mouseup', function() {
+                        
+                        altitude(0); //Altitud del drone = 0
+                        rotationChange(0); //Giro del drone
+ 
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+
+                // mouseout 
+                canvas.addEventListener('mouseout', function() {
+                        altitude(0); //Altitud del drone = 0
+                        rotationChange(0); //Giro del drone
+                        
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+                
+                
+                
+                canvas.addEventListener('touchstart', function(evt) {
+                        var mousePos = getTouchPos(canvas, evt);
+
+                        if (ctx.isPointInPath(mousePos.x, mousePos.y)) {
+                                arrastrar = true;
+                       }
+                }, false);
+                
+                // mousemove 
+                canvas.addEventListener('touchmove', function(evt) {
+                var m = getTouchPos(canvas, evt);
+                //ctx.beginPath();
+                //ctx.arc(X, Y, maxR, 0, 2 * Math.PI);
+                if (arrastrar) {
+                        delta.x = m.x - p.X;
+                        delta.y = m.y - p.Y;
+                        var deltaR = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+                        var elR = Math.min(deltaR, maxR);
+                        //console.log("DeltaR: " + deltaR + " elR: " + elR);
+                        var angulo = Math.atan2(delta.y, delta.x);
+                        //console.log(angulo); //
+                        
+                        x = X + elR * Math.cos(angulo);
+                        y = Y + elR * Math.sin(angulo);
+                        
+                        
+                        rotationChange(((x - X)/maxR)); //Giro del drone
+                        altitude(((y - Y)/maxR)*(-1)); //Altitud del drone
+
+                        
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(x, y, RCircle);
+                }
+
+                }, false);
+                
+                // mouseup 
+                canvas.addEventListener('touchend', function() {
+                        rotationChange(0); //Giro del drone
+                        altitude(0); //Altitud del drone
+                          
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+                
+                // mouseout 
+                canvas.addEventListener('touchup', function() {
+                        rotationChange(0); //Giro del drone
+                        altitude(0); //Altitud del drone
+                        
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+
+                
+                // Prevent scrolling when touching the canvas
+                document.body.addEventListener("touchstart", function (e) {
+                        if (e.target == canvas) {
+                                e.preventDefault();
+                        }
+                }, false);
+                
+                document.body.addEventListener("touchend", function (e) {
+                        if (e.target == canvas) {
+                                e.preventDefault();
+                        }
+                }, false);
+                
+                document.body.addEventListener("touchmove", function (e) {
+                        if (e.target == canvas) {
+                                e.preventDefault();
+                        }
+                }, false);
+}
         
-            // Get the mouse position
-            canvas.onmousemove = function (e) {
-                if (mouseIsDown && moveCircle){
-                    var x = e.pageX - this.offsetLeft - (canvasX/2);
-                    var y = (e.pageY - this.offsetTop - (canvasY/2))*(-1);
-                    setVY(x/(canvasX/2)); // Change variables and send the command to the drone
-                    setVX(y/(canvasY/2));
-                    sendVelocities();
-                    circleX = e.pageX - this.offsetLeft; // eliminamos el circulo y dibujamos otro con las nuevas coordenadas
-                    circleY = e.pageY - this.offsetTop;
-                    context.clearRect(0, 0, canvas.width, canvas.height);
-                    context.beginPath();
-                    context.fillStyle = "rgb(255, 0, 0)";
-                    context.arc(circleX, circleY, radious, 0, 2 * Math.PI, true);
-                    context.fill();
-               }
-            };
-            }
-                       
-        
+
+
+        function leftJoystick(){
+
+                var canvas = document.getElementById("leftJoystick");
+                var ctx = canvas.getContext("2d");
+                // opacidad 
+                ctx.globalAlpha = 0.85;
+                var cw = canvas.width;
+                var ch = canvas.height;
+                var X = cw / 2;
+                var Y = ch / 2;
+                var lineWidth = 7;
+                ctx.lineWidth = lineWidth;
+                var RHoop = X * 0.7; //Diametro de aro
+                var RCircle = RHoop * 0.4; // Diametro del circulo
+                var maxR = RHoop; // Distancia maxima a la que puede moverse
+                
+                var arrastrar = false;
+                
+                var p = {
+                  'X': X,
+                  'Y': Y,
+                  'R': RCircle
+                }; // Circle
+                var delta = new Object();
+                
+                var normalizaX = (X + maxR) - (X - maxR); 
+                var normalizaY = (Y + maxR) - (Y - maxR);
+                var VX = 0;
+                var VY = 0;
+
+                function dibujarAro(x, y, r) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, r, 0, 2 * Math.PI, true);
+                        //ctx.lineWidth = 7;
+                        ctx.strokeStyle = "rgb(87,125,25)";
+                        ctx.stroke();
+                }
+
+                function dibujarCirculo(x, y, r) {
+                        ctx.beginPath();
+                        ctx.fillStyle = "rgb(255, 144, 76)";
+                        ctx.arc(x, y, r, 0, 2 * Math.PI, true);
+                        ctx.fill();
+                }
+
+                // dibujamos los dos compoentes del joystick
+                dibujarAro(X, Y, RHoop);
+                dibujarCirculo(p.X, p.Y, RCircle);
+                
+                // EVENTOS 
+                canvas.addEventListener('mousedown', function(evt) {
+                        var mousePos = oMousePos(canvas, evt);
+
+                        if (ctx.isPointInPath(mousePos.x, mousePos.y)) {
+                                arrastrar = true;
+                       }
+                }, false);
+
+                // mousemove 
+                canvas.addEventListener('mousemove', function(evt) {
+                        var m = oMousePos(canvas, evt);
+                        //ctx.beginPath();
+                        //ctx.arc(X, Y, maxR, 0, 2 * Math.PI);
+                        if (arrastrar) {
+                                delta.x = m.x - p.X;
+                                delta.y = m.y - p.Y;
+                                var deltaR = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+                                var elR = Math.min(deltaR, maxR);
+                                //console.log("DeltaR: " + deltaR + " elR: " + elR);
+                                var angulo = Math.atan2(delta.y, delta.x);
+                                //console.log(angulo); //
+                                
+                                x = X + elR * Math.cos(angulo);
+                                y = Y + elR * Math.sin(angulo);
+                                
+                                
+                                VY = ((x - X)/maxR); // establecemos las velocidades (VY y VX van al reves ya que consuderamos x (avance) el joystick hacia adelante)
+                                VX = ((y - Y)/maxR)*(-1);
+                                
+                                setXYValues(VX,-VY);// Change variables and send the command to the drone
+                                //console.log("VX: " + VY);
+
+                                
+                                ctx.clearRect(0, 0, cw, ch); // Clear and redraw the joystick
+                                dibujarAro(X, Y, RHoop);
+                                dibujarCirculo(x, y, RCircle);
+                        }
+                }, false);
+                
+                // mouseup 
+                canvas.addEventListener('mouseup', function() {
+                        VX = 0;
+                        VY = 0;
+                        setXYValues(VX,-VY);// Change variables and send the command to the drone
+
+                          
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+
+                // mouseout 
+                canvas.addEventListener('mouseout', function() {
+                        VX = 0;
+                        VY = 0;
+                        setXYValues(VX,-VY);// Change variables and send the command to the drone
+
+                        
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+                
+                
+                
+                canvas.addEventListener('touchstart', function(evt) {
+                        var mousePos = getTouchPos(canvas, evt);
+
+                        if (ctx.isPointInPath(mousePos.x, mousePos.y)) {
+                                arrastrar = true;
+                       }
+                }, false);
+                
+                // mousemove 
+                canvas.addEventListener('touchmove', function(evt) {
+                var m = getTouchPos(canvas, evt);
+                //ctx.beginPath();
+                //ctx.arc(X, Y, maxR, 0, 2 * Math.PI);
+                if (arrastrar) {
+                        delta.x = m.x - p.X;
+                        delta.y = m.y - p.Y;
+                        var deltaR = Math.sqrt(delta.x * delta.x + delta.y * delta.y);
+                        var elR = Math.min(deltaR, maxR);
+                        //console.log("DeltaR: " + deltaR + " elR: " + elR);
+                        var angulo = Math.atan2(delta.y, delta.x);
+                        //console.log(angulo); //
+                        
+                        x = X + elR * Math.cos(angulo);
+                        y = Y + elR * Math.sin(angulo);
+                        
+                        
+                        VY = ((x - X)/maxR); // establecemos las velocidades (VY y VX van al reves ya que consuderamos x (avance) el joystick hacia adelante)
+                        VX = ((y - Y)/maxR)*(-1);
+                        
+                        setXYValues(VX,-VY);// Change variables and send the command to the drone
+
+                        
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(x, y, RCircle);
+                }
+
+                }, false);
+                
+                // mouseup 
+                canvas.addEventListener('touchend', function() {
+                        VX = 0;
+                        VY = 0;
+                        setXYValues(VX,-VY);// Change variables and send the command to the drone
+
+                          
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+                
+                // mouseout 
+                canvas.addEventListener('touchup', function() {
+                        VX = 0;
+                        VY = 0;
+                        setXYValues(VX,-VY);// Change variables and send the command to the drone
+
+                        
+                        arrastrar = false;
+                        ctx.clearRect(0, 0, cw, ch);
+                        dibujarAro(X, Y, RHoop);
+                        dibujarCirculo(X, Y, RCircle);
+                }, false);
+
+                
+                // Prevent scrolling when touching the canvas
+                document.body.addEventListener("touchstart", function (e) {
+                        if (e.target == canvas) {
+                                e.preventDefault();
+                        }
+                }, false);
+                
+                document.body.addEventListener("touchend", function (e) {
+                        if (e.target == canvas) {
+                                e.preventDefault();
+                        }
+                }, false);
+                
+                document.body.addEventListener("touchmove", function (e) {
+                        if (e.target == canvas) {
+                                e.preventDefault();
+                        }
+                }, false);
+}
+              
+        // Funciones Posicion del raton
+        function oMousePos(canvas, evt) {
+                // Detecta la posición del raton en un canvas
+                var ClientRect = canvas.getBoundingClientRect();
+                return { //objeto
+                        x: Math.round(evt.clientX - ClientRect.left),
+                        y: Math.round(evt.clientY - ClientRect.top)
+                }
+        }
+
+        // Posicion si tocamos la pantalla
+        function getTouchPos(canvasDom, touchEvent) {
+                var rect = canvasDom.getBoundingClientRect();
+                return {
+                        x: touchEvent.touches[0].clientX - rect.left,
+                        y: touchEvent.touches[0].clientY - rect.top
+                };
+        }       
         
         // Functions return the value of fliying parameters
         function getYaw(qw,qx,qy,qz) {                     
@@ -303,21 +636,6 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
             );
         }
         
-        this.stop = function(){
-                startCanvas(); // ReWrite the canvas
-                document.getElementById('altura').value = 0; // Set altitude to 0   
-                document.querySelector('#AltVal').value = 0; // set altitude indicator to 0
-                setVZ(0); // Altitude velocity to 0 and send to the drone
-                sendVelocities();
-                rotationChange(0); //change e rotation to 0
-                document.getElementById('knob').value = 0; // Ratotaion value set to 0
-                $('.knob')  // set 0 canvas jquery button
-                        .val(0)
-                        .trigger('change');
-                console.log("Stop");
-        }
-        
-        
         
         function updateNavData() {
             navdataProxy.getNavdata().then(
@@ -334,13 +652,13 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         
         function sendVelocities () {
             cmdVelProxy.setCMDVelData(cmd).then(
-            function(ar){
-                //console.log("sendVelocities.");
-            },
-            function(ex, ar){
-                console.log("sendVelocities failed.")
-            }
-        );
+                function(ar){
+                  //console.log("sendVelocities.");
+                },
+                function(ex, ar){
+                  console.log("sendVelocities failed.")
+                }
+            );
         }
         
         this.sendCMDVel = function(vx,vy,vz,yaw,roll,pitch){
@@ -408,63 +726,13 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                 cmd.angularY=pitch;
         }
         
-        //****************************************************************************************************************
-        // Rotation button
-        //****************************************************************************************************************
-
-        
-        $(function($) {
-
-			$(".knob").knob({
-				change : function (value) {
-					rotationChange(value);
-					//console.log("change : " + value);
-				},
-				draw : function () {
-					// "tron" case
-					if(this.$.data('skin') == 'tron') {
-
-						this.cursorExt = 0.3;
-
-						var a = this.arc(this.cv)  // Arc
-							, pa                   // Previous arc
-							, r = 1;
-
-						this.g.lineWidth = this.lineWidth;
-
-						if (this.o.displayPrevious) {
-							pa = this.arc(this.v);
-							this.g.beginPath();
-							this.g.strokeStyle = this.pColor;
-							this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, pa.s, pa.e, pa.d);
-							this.g.stroke();
-						}
-
-						this.g.beginPath();
-						this.g.strokeStyle = r ? this.o.fgColor : this.fgColor ;
-						this.g.arc(this.xy, this.xy, this.radius - this.lineWidth, a.s, a.e, a.d);
-						this.g.stroke();
-
-						this.g.lineWidth = 2;
-						this.g.beginPath();
-						this.g.strokeStyle = this.o.fgColor;
-						this.g.arc( this.xy, this.xy, this.radius - this.lineWidth + 1 + this.lineWidth * 2 / 3, 0, 2 * Math.PI, false);
-						this.g.stroke();
-
-						return false;
-					}
-				}
-			});			
-		});
         
         
         //****************************************************************************************************************
         //****************************************************************************************************************
 
         
-        function altitude() {
-            var val =  document.getElementById('altura').value;    
-            document.querySelector('#AltVal').value = val;
+        function altitude(val) {
             setVZ(val);
             sendVelocities();
          }
@@ -473,8 +741,9 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                 startConnection().then(
                         function(ar){
                                 console.log(ar);
-                                startCanvas();
                                 PanelControl = new panelControl();
+                                leftJoystick();
+                                rightJoystick();
                                 intervalo = setInterval(updateAndShow, 20);
                         },
                         function(ex, ar){
@@ -491,7 +760,8 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
                 // calculate yaw, pitch, and roll
                 var yaw = getYaw(pose.q0, pose.q1, pose.q2, pose.q3);
                 var pitch = getPitch(pose.q0, pose.q1, pose.q2, pose.q3);
-                var roll = getRoll(pose.q0, pose.q1, pose.q2, pose.q3);                
+                var roll = getRoll(pose.q0, pose.q1, pose.q2, pose.q3);
+                //console.log(roll);
                 PanelControl.updatePanelControl(yaw, pitch, roll, pose);
         }
 }    
