@@ -2,7 +2,7 @@
 
 
 
-var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPort, pose3DProxyPort){
+var uavViewer_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPort, pose3DProxyPort){
         
         
         
@@ -20,8 +20,8 @@ var introrobot_js = function(ip, baseextraPort, navdataProxyPort, cmdVelProxyPor
         myHTMLControl = myHTMLControl + "<canvas id=rightJoystick width=150 height=150>Su navegador no soporta canvas :( </canvas>";       
 
                 
-        document.getElementById("introrobot_watches").innerHTML= myHTMLWatches;
-        document.getElementById("introrobot_control").innerHTML= myHTMLControl;
+        document.getElementById("UAV_watches").innerHTML= myHTMLWatches;
+        document.getElementById("UAV_control").innerHTML= myHTMLControl;
         
         //********************************************************************************************
         //********************************************************************************************

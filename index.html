@@ -20,15 +20,15 @@
         <script type="text/javascript" src="js/jderobot/ardroneextra.js"></script>
         <script type="text/javascript" src="js/jderobot/navdata.js"></script>
         <script type="text/javascript" src="js/jderobot/pose3d.js"></script>
-        <script type="text/javascript" src="js/auv_viewer.js"></script>
+        <script type="text/javascript" src="js/uav_viewer.js"></script>
 
     </head>
     <body>
 
 		<h1 style = center>UAV_Viewer_js</h1>
 
-		<section id = introrobot_watches></section>
-		<section id = introrobot_control  style=position: absolute; top: 0px; left: 0px;></section>
+		<section id = UAV_watches></section>
+		<section id = UAV_control  style=position: absolute; top: 0px; left: 0px;></section>
        
 	    <button id = takeoff >Take Off</button>        
         <button id = landing>Landing</button>
@@ -36,13 +36,13 @@
 		</div>
 	
 	<script>
-			var introrobot = new introrobot_js ("localhost", 17000, 15000, 11000, 19000);
-			introrobot.start();
+			var UAV = new uavViewer_js ("localhost", 17000, 15000, 11000, 19000);
+			UAV.start();
 			document.getElementById('takeoff').onclick = function() {
-				introrobot.takeoff();
+				UAV.takeoff();
 			}
 			document.getElementById('landing').onclick = function() {
-				introrobot.land();
+				UAV.land();
 			}
 	</script>
 	
