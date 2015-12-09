@@ -10,7 +10,7 @@ All you need to port it to your web page and use it is:
 
 ###Add code
 ####HTML:
-<pre>
+```html
 <head>
 	<link rel="stylesheet" type="text/css" href="css/flightindicators.css">
 	
@@ -36,30 +36,33 @@ All you need to port it to your web page and use it is:
 	<section id = UAV_watches></section>
 	<section id = UAV_control></section>
 </body>
-</pre>
+```
  
 ####JavaScript:
-<pre>
+```javascript
 var UAV = new uavViewer_js (Drone_IP, baseextraPort,navdataProxyPort, cmdVelProxyPort, pose3DProxyPort);
-</pre>
+```
 
 ###Public methods
 Start: is the first method you have to call. It starts the communication and set up the environment in the browser.
-<pre>
+```javascript
 UAV.start();
-</pre>
+```
 
 Take Off:
-<pre>
+```javascript
 UAV.takeoff();
-</pre>
+```
 
 Land: 
-<pre>
+```javascript
 UAV.land();
-</pre>
+```
 
 Stop: Makes the drone stop and establish all the movement orders.
-<pre>
+```javascript
 UAV.stop();
-</pre>
+```
+You can check for all the project, see videos and all the material in the wiki project page:
+
+http://jderobot.org/Irodmar-tfg#UAVViewer_js
