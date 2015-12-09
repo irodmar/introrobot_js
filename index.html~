@@ -36,7 +36,7 @@
 		</div>
 	
 	<script>
-			var introrobot = new introrobot_js ("localhost", 17000, 15000, 11000, 19000);
+			var introrobot = new introrobot_js ("10.10.50.245", 17000, 15000, 11000, 19000);
 			introrobot.start();
 			document.getElementById('takeoff').onclick = function() {
 				introrobot.takeoff();
